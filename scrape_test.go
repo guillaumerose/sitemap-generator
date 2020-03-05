@@ -23,3 +23,16 @@ func TestScrapeOnePage(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, links, []string{"/about", "/"})
 }
+
+func TestScrapeBrokenPage(t *testing.T) {
+	e := echo.New()
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusForbidden, ``)
+	})
+
+	target := httptest.NewServer(e)
+	defer target.Close()
+
+	_, err := scrape(target.URL)
+	assert.EqualError(t, err, "unexpected status code, got 403")
+}

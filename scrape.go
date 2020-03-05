@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -22,6 +23,9 @@ func scrape(base string) ([]string, error) {
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
+	}
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		return nil, fmt.Errorf("unexpected status code, got %d", res.StatusCode)
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
