@@ -4,21 +4,20 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"golang.org/x/net/html"
 )
 
-func scrape(url string) ([]string, error) {
-	client := http.Client{
-		Timeout: 5 * time.Second,
-	}
+type scraper struct {
+	client *http.Client
+}
 
+func (s *scraper) scrape(url string) ([]string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.Do(req)
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}

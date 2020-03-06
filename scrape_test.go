@@ -19,7 +19,10 @@ func TestScrapeOnePage(t *testing.T) {
 	target := httptest.NewServer(e)
 	defer target.Close()
 
-	links, err := scrape(target.URL)
+	scraper := scraper{
+		client: &http.Client{},
+	}
+	links, err := scraper.scrape(target.URL)
 	require.NoError(t, err)
 	assert.Equal(t, links, []string{"/about", "/"})
 }
@@ -33,6 +36,9 @@ func TestScrapeBrokenPage(t *testing.T) {
 	target := httptest.NewServer(e)
 	defer target.Close()
 
-	_, err := scrape(target.URL)
+	scraper := scraper{
+		client: &http.Client{},
+	}
+	_, err := scraper.scrape(target.URL)
 	assert.EqualError(t, err, "unexpected status code, got 403")
 }

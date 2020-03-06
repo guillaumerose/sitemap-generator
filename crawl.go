@@ -1,12 +1,20 @@
 package main
 
 import (
+	"net/http"
 	"sort"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
 func crawl(base string, maxURLs int) ([]string, error) {
+	scraper := scraper{
+		client: &http.Client{
+			Timeout: 5 * time.Second,
+		},
+	}
+
 	visited := make(map[string]bool)
 	queue := []string{"/"}
 	for len(queue) > 0 && len(visited) < maxURLs {
@@ -19,7 +27,7 @@ func crawl(base string, maxURLs int) ([]string, error) {
 
 		url := base + current
 		logrus.Infof("Visiting %s", url)
-		links, err := scrape(url)
+		links, err := scraper.scrape(url)
 		if err != nil {
 			visited[current] = false
 			logrus.Warnf("Error while scraping %s: %v", url, err)
