@@ -32,3 +32,20 @@ func TestCrawlWebsite(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, links, []string{"/", "/about", "/depth1", "/depth1/depth2"})
 }
+
+func TestDiscardErrorPages(t *testing.T) {
+	e := echo.New()
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, `<a href="/about">about</a>`)
+	})
+	e.GET("/about", func(c echo.Context) error {
+		return c.String(http.StatusNotFound, "Not Found!")
+	})
+
+	target := httptest.NewServer(e)
+	defer target.Close()
+
+	links, err := crawl(target.URL, 10)
+	require.NoError(t, err)
+	assert.Equal(t, links, []string{"/"})
+}
