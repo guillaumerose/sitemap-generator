@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -26,7 +27,11 @@ func (s *scraper) scrape(url string) ([]string, error) {
 	}
 
 	defer res.Body.Close()
-	doc, err := html.Parse(res.Body)
+	return links(res.Body)
+}
+
+func links(body io.ReadCloser) ([]string, error) {
+	doc, err := html.Parse(body)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +41,7 @@ func (s *scraper) scrape(url string) ([]string, error) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			if link := href(n); link != "" {
 				if strings.HasPrefix(link, "/") {
-					links = append(links, link)
+					links = append(links, strings.SplitN(link, "?", 2)[0])
 				}
 			}
 		}

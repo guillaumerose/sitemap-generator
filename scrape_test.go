@@ -42,3 +42,20 @@ func TestScrapeBrokenPage(t *testing.T) {
 	_, err := scraper.scrape(target.URL)
 	assert.EqualError(t, err, "unexpected status code, got 403")
 }
+
+func TestIgnoreQueryParams(t *testing.T) {
+	e := echo.New()
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, `... html ... <a href="/about?foo=bar">about</a> ... html ...`)
+	})
+
+	target := httptest.NewServer(e)
+	defer target.Close()
+
+	scraper := scraper{
+		client: &http.Client{},
+	}
+	links, err := scraper.scrape(target.URL)
+	require.NoError(t, err)
+	assert.Equal(t, links, []string{"/about"})
+}
