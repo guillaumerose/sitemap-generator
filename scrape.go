@@ -2,17 +2,14 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/net/html"
 )
-
-var linksExtractor = regexp.MustCompile(`<a\s+(?:[^>]*?\s+)?href="([^"]*)"`)
 
 func scrape(url string) ([]string, error) {
 	client := http.Client{
@@ -30,21 +27,37 @@ func scrape(url string) ([]string, error) {
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return nil, fmt.Errorf("unexpected status code, got %d", res.StatusCode)
 	}
+
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	doc, err := html.Parse(res.Body)
 	if err != nil {
 		return nil, err
 	}
-
-	matches := linksExtractor.FindAllStringSubmatch(string(body), -1)
 	var links []string
-	for _, match := range matches {
-		link := match[1]
-		if strings.HasPrefix(link, "/") {
-			links = append(links, link)
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			if link := href(n); link != "" {
+				if strings.HasPrefix(link, "/") {
+					links = append(links, link)
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
 		}
 	}
+	f(doc)
 	return links, nil
+}
+
+func href(n *html.Node) string {
+	for _, a := range n.Attr {
+		if a.Key == "href" {
+			return a.Val
+		}
+	}
+	return ""
 }
 
 func crawl(base string, maxURLs int) ([]string, error) {
