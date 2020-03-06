@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
@@ -25,8 +25,6 @@ func run(base string, maxURLs int) error {
 	if err != nil {
 		return err
 	}
-	for _, link := range links {
-		fmt.Println(link)
-	}
+	render(links, os.Stdout)
 	return nil
 }
