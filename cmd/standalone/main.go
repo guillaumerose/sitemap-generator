@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/guillaumerose/sitemap-generator/pkg/crawler"
+	"github.com/guillaumerose/sitemap-generator/pkg/render"
 	"github.com/sirupsen/logrus"
 )
 
@@ -15,7 +16,7 @@ var (
 
 func main() {
 	flag.IntVar(&maxDepth, "max", 5, "maximum depth to crawl")
-	flag.IntVar(&parallelism, "p", 10, "maximum number of concurrent requests")
+	flag.IntVar(&parallelism, "p", 2, "maximum number of concurrent requests")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		logrus.Fatal("url is mandatory")
@@ -31,6 +32,6 @@ func run(url string, maxDepth, parallelism int) error {
 	crawler.Wait()
 	links := crawler.VisitedURLs()
 	logrus.Infof("Found %d URLs", len(links))
-	render(links, os.Stdout)
+	render.AsTree(links, os.Stdout)
 	return nil
 }

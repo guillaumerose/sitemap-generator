@@ -4,6 +4,7 @@ build:
 	mkdir -p bin/
 	go build -o bin/sitemap-generator ./cmd/standalone
 	go build -o bin/server ./cmd/server
+	go build -o bin/client ./cmd/client
 
 lint:
 	golangci-lint run ./...

@@ -1,4 +1,4 @@
-package main
+package render
 
 import (
 	"bytes"
@@ -22,7 +22,7 @@ func TestRender(t *testing.T) {
 		"/en/websites-and-apps",
 	}
 	var buf bytes.Buffer
-	render(links, &buf)
+	AsTree(links, &buf)
 	assert.Equal(t, `- /
 - /en
   - /about

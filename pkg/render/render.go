@@ -1,4 +1,4 @@
-package main
+package render
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func render(links []string, w io.Writer) {
+func AsTree(links []string, w io.Writer) {
 	var prefix []string
 	for _, link := range links {
 		split := strings.Split(link, "/")[1:]
