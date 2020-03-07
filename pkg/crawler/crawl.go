@@ -2,15 +2,15 @@ package crawler
 
 import (
 	"net/http"
-	"sort"
 	"sync"
 	"time"
 
+	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/sirupsen/logrus"
 )
 
 type Crawler struct {
-	visited map[string]bool
+	visited *treemap.Map
 	lock    sync.RWMutex
 
 	waitChan chan bool
@@ -21,7 +21,7 @@ type Crawler struct {
 
 func New(parallelism int) *Crawler {
 	return &Crawler{
-		visited:  make(map[string]bool),
+		visited:  treemap.NewWithStringComparator(),
 		lock:     sync.RWMutex{},
 		waitChan: make(chan bool, parallelism),
 		wg:       sync.WaitGroup{},
@@ -41,34 +41,33 @@ func (c *Crawler) VisitedURLs() []string {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	var ans []string
-	for link, valid := range c.visited {
-		if valid {
-			ans = append(ans, link)
+	c.visited.Each(func(link interface{}, valid interface{}) {
+		if valid.(bool) {
+			ans = append(ans, link.(string))
 		}
-	}
-	sort.Strings(ans)
+	})
 	return ans
 }
 
 func (c *Crawler) markVisited(link string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.visited[link] = true
+	c.visited.Put(link, true)
 }
 
 func (c *Crawler) checkVisited(link string) bool {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	_, ok := c.visited[link]
+	_, ok := c.visited.Get(link)
 	return ok
 }
 
 func (c *Crawler) checkVisitedAndMark(link string) bool {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	_, ok := c.visited[link]
+	_, ok := c.visited.Get(link)
 	if !ok {
-		c.visited[link] = false
+		c.visited.Put(link, false)
 	}
 	return ok
 }
