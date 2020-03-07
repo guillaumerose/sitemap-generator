@@ -54,6 +54,7 @@ func run(url string, maxDepth, parallelism int) error {
 		logrus.Infof("%d URLs found", crawl.Status.Size)
 		time.Sleep(time.Second)
 	}
+	logrus.Infof("Finished! %d URLs found", crawl.Status.Size)
 	links, err := client.GetCrawlLinks(crawl.ID)
 	if err != nil {
 		return err
