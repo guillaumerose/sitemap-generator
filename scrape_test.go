@@ -43,10 +43,10 @@ func TestScrapeBrokenPage(t *testing.T) {
 	assert.EqualError(t, err, "unexpected status code, got 403")
 }
 
-func TestIgnoreQueryParams(t *testing.T) {
+func TestCleanURLs(t *testing.T) {
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, `... html ... <a href="/about?foo=bar">about</a> ... html ...`)
+		return c.HTML(http.StatusOK, `... html ... <a href="/page1?foo=bar">page1</a> <a href="/page2#anchor">page2</a> <a href="/page3/">page3</a> ... html ...`)
 	})
 
 	target := httptest.NewServer(e)
@@ -57,5 +57,5 @@ func TestIgnoreQueryParams(t *testing.T) {
 	}
 	links, err := scraper.scrape(target.URL)
 	require.NoError(t, err)
-	assert.Equal(t, links, []string{"/about"})
+	assert.Equal(t, links, []string{"/page1", "/page2", "/page3"})
 }

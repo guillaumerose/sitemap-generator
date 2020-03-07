@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -41,7 +42,10 @@ func links(body io.ReadCloser) ([]string, error) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			if link := href(n); link != "" {
 				if strings.HasPrefix(link, "/") {
-					links = append(links, strings.SplitN(link, "?", 2)[0])
+					withoutDash := strings.SplitN(link, "#", 2)[0]
+					withoutQueryParams := strings.SplitN(withoutDash, "?", 2)[0]
+					withoutExtraSlash := path.Clean(withoutQueryParams)
+					links = append(links, withoutExtraSlash)
 				}
 			}
 		}
