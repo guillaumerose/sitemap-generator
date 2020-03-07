@@ -29,6 +29,7 @@ func TestCrawlWebsite(t *testing.T) {
 
 	crawler := New(2)
 	crawler.Crawl(target.URL, 10)
+	crawler.Wait()
 	links := crawler.VisitedURLs()
 	assert.Equal(t, links, []string{"/", "/about", "/depth1", "/depth1/depth2"})
 }
@@ -47,6 +48,7 @@ func TestDiscardErrorPages(t *testing.T) {
 
 	crawler := New(1)
 	crawler.Crawl(target.URL, 10)
+	crawler.Wait()
 	links := crawler.VisitedURLs()
 	assert.Equal(t, links, []string{"/"})
 }

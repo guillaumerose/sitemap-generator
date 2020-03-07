@@ -11,7 +11,7 @@ import (
 
 type Crawler struct {
 	visited map[string]bool
-	lock    sync.Mutex
+	lock    sync.RWMutex
 
 	waitChan chan bool
 	wg       sync.WaitGroup
@@ -22,7 +22,7 @@ type Crawler struct {
 func New(parallelism int) *Crawler {
 	return &Crawler{
 		visited:  make(map[string]bool),
-		lock:     sync.Mutex{},
+		lock:     sync.RWMutex{},
 		waitChan: make(chan bool, parallelism),
 		wg:       sync.WaitGroup{},
 		scraper: &scraper{
@@ -32,8 +32,14 @@ func New(parallelism int) *Crawler {
 		},
 	}
 }
-func (c *Crawler) VisitedURLs() []string {
+
+func (c *Crawler) Wait() {
 	c.wg.Wait()
+}
+
+func (c *Crawler) VisitedURLs() []string {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	var ans []string
 	for link, valid := range c.visited {
 		if valid {
@@ -50,16 +56,20 @@ func (c *Crawler) markVisited(link string) {
 	c.visited[link] = true
 }
 
-func (c *Crawler) markError(link string) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.visited[link] = false
+func (c *Crawler) checkVisited(link string) bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	_, ok := c.visited[link]
+	return ok
 }
 
-func (c *Crawler) isVisited(link string) bool {
+func (c *Crawler) checkVisitedAndMark(link string) bool {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	_, ok := c.visited[link]
+	if !ok {
+		c.visited[link] = false
+	}
 	return ok
 }
 
@@ -77,10 +87,9 @@ func (c *Crawler) doCrawl(base, current string, depth int) {
 		return
 	}
 
-	if ok := c.isVisited(current); ok {
+	if ok := c.checkVisitedAndMark(current); ok {
 		return
 	}
-	c.markError(current)
 
 	url := base + current
 	logrus.Infof("Visiting %s", url)
@@ -93,7 +102,7 @@ func (c *Crawler) doCrawl(base, current string, depth int) {
 
 	for i := range links {
 		link := links[i]
-		if ok := c.isVisited(link); !ok {
+		if ok := c.checkVisited(link); !ok {
 			c.wg.Add(1)
 			go func() {
 				defer c.wg.Done()

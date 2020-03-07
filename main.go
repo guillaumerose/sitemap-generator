@@ -28,6 +28,7 @@ func main() {
 func run(url string, maxDepth, parallelism int) error {
 	crawler := crawler.New(parallelism)
 	crawler.Crawl(url, maxDepth)
+	crawler.Wait()
 	links := crawler.VisitedURLs()
 	render(links, os.Stdout)
 	return nil
