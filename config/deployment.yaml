@@ -24,14 +24,4 @@ spec:
   selector:
     matchLabels:
       app: sitemap-generator
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: sitemap-generator
-spec:
-  selector:
-    app: sitemap-generator
-  ports:
-    - port: 8080
-  type: LoadBalancer
+
