@@ -13,16 +13,16 @@ import (
 func TestCrawlWebsite(t *testing.T) {
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, `<a href="/depth1">depth1</a>  <a href="/about">about</a> <a href="/">self</a>`)
+		return c.HTML(http.StatusOK, `<a href="/depth1">depth1</a>  <a href="/about">about</a> <a href="/">self</a>`)
 	})
 	e.GET("/about", func(c echo.Context) error {
-		return c.String(http.StatusOK, `content`)
+		return c.HTML(http.StatusOK, `content`)
 	})
 	e.GET("/depth1", func(c echo.Context) error {
-		return c.String(http.StatusOK, `<a href="/depth1/depth2">depth2</a>`)
+		return c.HTML(http.StatusOK, `<a href="/depth1/depth2">depth2</a>`)
 	})
 	e.GET("/depth1/depth2", func(c echo.Context) error {
-		return c.String(http.StatusOK, `content`)
+		return c.HTML(http.StatusOK, `content`)
 	})
 
 	target := httptest.NewServer(e)
@@ -36,10 +36,10 @@ func TestCrawlWebsite(t *testing.T) {
 func TestDiscardErrorPages(t *testing.T) {
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, `<a href="/about">about</a>`)
+		return c.HTML(http.StatusOK, `<a href="/about">about</a>`)
 	})
 	e.GET("/about", func(c echo.Context) error {
-		return c.String(http.StatusNotFound, "Not Found!")
+		return c.HTML(http.StatusNotFound, "Not Found!")
 	})
 
 	target := httptest.NewServer(e)

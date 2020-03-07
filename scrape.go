@@ -26,6 +26,9 @@ func (s *scraper) scrape(url string) ([]string, error) {
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return nil, fmt.Errorf("unexpected status code, got %d", res.StatusCode)
 	}
+	if !strings.HasPrefix(res.Header.Get("content-type"), "text/html") {
+		return []string{}, nil
+	}
 
 	defer res.Body.Close()
 	return links(res.Body)

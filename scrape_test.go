@@ -13,7 +13,7 @@ import (
 func TestScrapeOnePage(t *testing.T) {
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, `... html ... <a href="/about">about</a> <a href="/">self</a> <a href="http://external">external</a> ... html ...`)
+		return c.HTML(http.StatusOK, `... html ... <a href="/about">about</a> <a href="/">self</a> <a href="http://external">external</a> ... html ...`)
 	})
 
 	target := httptest.NewServer(e)
@@ -30,7 +30,7 @@ func TestScrapeOnePage(t *testing.T) {
 func TestScrapeBrokenPage(t *testing.T) {
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusForbidden, ``)
+		return c.HTML(http.StatusForbidden, ``)
 	})
 
 	target := httptest.NewServer(e)
