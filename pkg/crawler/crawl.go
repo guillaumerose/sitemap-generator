@@ -7,10 +7,13 @@ import (
 	"time"
 
 	"github.com/emirpasic/gods/maps/treemap"
+	"github.com/guillaumerose/sitemap-generator/pkg/types"
 	"github.com/sirupsen/logrus"
 )
 
 type Crawler struct {
+	Spec types.CrawlSpec
+
 	visited *treemap.Map
 	lock    sync.RWMutex
 
@@ -21,11 +24,12 @@ type Crawler struct {
 	scraper *scraper
 }
 
-func New(parallelism int) *Crawler {
+func New(spec types.CrawlSpec) *Crawler {
 	return &Crawler{
+		Spec:     spec,
 		visited:  treemap.NewWithStringComparator(),
 		lock:     sync.RWMutex{},
-		waitChan: make(chan bool, parallelism),
+		waitChan: make(chan bool, spec.Parallelism),
 		wg:       sync.WaitGroup{},
 		scraper: &scraper{
 			client: &http.Client{
@@ -83,8 +87,8 @@ func (c *Crawler) checkVisitedAndMark(link string) bool {
 	return ok
 }
 
-func (c *Crawler) Crawl(base string, maxDepth int) {
-	c.doCrawl(base, "/", maxDepth)
+func (c *Crawler) Crawl() {
+	c.doCrawl(c.Spec.URL, "/", c.Spec.MaxDepth)
 }
 
 func (c *Crawler) doCrawl(base, current string, depth int) {

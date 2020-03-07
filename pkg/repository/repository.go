@@ -44,15 +44,16 @@ func (r *InMemoryRepository) Create(req *types.Crawl) (*types.Crawl, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	crawler := crawler.New(req.Spec.Parallelism)
-	crawler.Crawl(req.Spec.URL, req.Spec.MaxDepth)
+	crawler := crawler.New(req.Spec)
+	crawler.Crawl()
 
 	id := strconv.Itoa(r.seq)
 	r.seq++
 	r.crawls[id] = crawler
 
 	return &types.Crawl{
-		ID: id,
+		ID:   id,
+		Spec: req.Spec,
 	}, nil
 }
 
@@ -61,7 +62,8 @@ func (r *InMemoryRepository) Get(id string) (*types.Crawl, error) {
 	defer r.lock.RUnlock()
 	if crawl, ok := r.crawls[id]; ok {
 		return &types.Crawl{
-			ID: id,
+			ID:   id,
+			Spec: crawl.Spec,
 			Status: types.CrawlStatus{
 				Done: crawl.Done(),
 				Size: crawl.Size(),

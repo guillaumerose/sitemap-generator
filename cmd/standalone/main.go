@@ -6,6 +6,7 @@ import (
 
 	"github.com/guillaumerose/sitemap-generator/pkg/crawler"
 	"github.com/guillaumerose/sitemap-generator/pkg/render"
+	"github.com/guillaumerose/sitemap-generator/pkg/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -27,8 +28,12 @@ func main() {
 }
 
 func run(url string, maxDepth, parallelism int) error {
-	crawler := crawler.New(parallelism)
-	crawler.Crawl(url, maxDepth)
+	crawler := crawler.New(types.CrawlSpec{
+		URL:         url,
+		MaxDepth:    maxDepth,
+		Parallelism: parallelism,
+	})
+	crawler.Crawl()
 	crawler.Wait()
 	links := crawler.VisitedURLs()
 	logrus.Infof("Found %d URLs", len(links))

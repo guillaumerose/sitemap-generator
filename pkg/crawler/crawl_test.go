@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/guillaumerose/sitemap-generator/pkg/types"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,8 +28,12 @@ func TestCrawlWebsite(t *testing.T) {
 	target := httptest.NewServer(e)
 	defer target.Close()
 
-	crawler := New(2)
-	crawler.Crawl(target.URL, 10)
+	crawler := New(types.CrawlSpec{
+		URL:         target.URL,
+		MaxDepth:    10,
+		Parallelism: 2,
+	})
+	crawler.Crawl()
 	crawler.Wait()
 	links := crawler.VisitedURLs()
 	assert.Equal(t, links, []string{"/", "/about", "/depth1", "/depth1/depth2"})
@@ -46,8 +51,12 @@ func TestDiscardErrorPages(t *testing.T) {
 	target := httptest.NewServer(e)
 	defer target.Close()
 
-	crawler := New(1)
-	crawler.Crawl(target.URL, 10)
+	crawler := New(types.CrawlSpec{
+		URL:         target.URL,
+		MaxDepth:    10,
+		Parallelism: 1,
+	})
+	crawler.Crawl()
 	crawler.Wait()
 	links := crawler.VisitedURLs()
 	assert.Equal(t, links, []string{"/"})
