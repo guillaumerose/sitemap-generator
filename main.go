@@ -30,6 +30,7 @@ func run(url string, maxDepth, parallelism int) error {
 	crawler.Crawl(url, maxDepth)
 	crawler.Wait()
 	links := crawler.VisitedURLs()
+	logrus.Infof("Found %d URLs", len(links))
 	render(links, os.Stdout)
 	return nil
 }
