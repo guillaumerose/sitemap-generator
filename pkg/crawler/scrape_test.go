@@ -1,4 +1,4 @@
-package main
+package crawler
 
 import (
 	"net/http"
@@ -22,7 +22,7 @@ func TestScrapeOnePage(t *testing.T) {
 	scraper := scraper{
 		client: &http.Client{},
 	}
-	links, err := scraper.scrape(target.URL)
+	links, err := scraper.scrapeAllLinks(target.URL)
 	require.NoError(t, err)
 	assert.Equal(t, links, []string{"/about", "/"})
 }
@@ -39,7 +39,7 @@ func TestScrapeBrokenPage(t *testing.T) {
 	scraper := scraper{
 		client: &http.Client{},
 	}
-	_, err := scraper.scrape(target.URL)
+	_, err := scraper.scrapeAllLinks(target.URL)
 	assert.EqualError(t, err, "unexpected status code, got 403")
 }
 
@@ -55,7 +55,7 @@ func TestCleanURLs(t *testing.T) {
 	scraper := scraper{
 		client: &http.Client{},
 	}
-	links, err := scraper.scrape(target.URL)
+	links, err := scraper.scrapeAllLinks(target.URL)
 	require.NoError(t, err)
 	assert.Equal(t, links, []string{"/page1", "/page2", "/page3"})
 }

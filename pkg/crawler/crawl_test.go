@@ -1,4 +1,4 @@
-package main
+package crawler
 
 import (
 	"net/http"
@@ -27,9 +27,9 @@ func TestCrawlWebsite(t *testing.T) {
 	target := httptest.NewServer(e)
 	defer target.Close()
 
-	crawler := newCrawler(2)
-	crawler.crawl(target.URL, "/", 10)
-	links := crawler.visitedURLs()
+	crawler := New(2)
+	crawler.Crawl(target.URL, 10)
+	links := crawler.VisitedURLs()
 	assert.Equal(t, links, []string{"/", "/about", "/depth1", "/depth1/depth2"})
 }
 
@@ -45,8 +45,8 @@ func TestDiscardErrorPages(t *testing.T) {
 	target := httptest.NewServer(e)
 	defer target.Close()
 
-	crawler := newCrawler(1)
-	crawler.crawl(target.URL, "/", 10)
-	links := crawler.visitedURLs()
+	crawler := New(1)
+	crawler.Crawl(target.URL, 10)
+	links := crawler.VisitedURLs()
 	assert.Equal(t, links, []string{"/"})
 }

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 
+	"github.com/guillaumerose/sitemap-generator/pkg/crawler"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,10 +25,10 @@ func main() {
 	}
 }
 
-func run(base string, maxDepth, parallelism int) error {
-	crawler := newCrawler(parallelism)
-	crawler.crawl(base, "/", maxDepth)
-	links := crawler.visitedURLs()
+func run(url string, maxDepth, parallelism int) error {
+	crawler := crawler.New(parallelism)
+	crawler.Crawl(url, maxDepth)
+	links := crawler.VisitedURLs()
 	render(links, os.Stdout)
 	return nil
 }

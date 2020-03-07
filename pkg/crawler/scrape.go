@@ -1,4 +1,4 @@
-package main
+package crawler
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type scraper struct {
 	client *http.Client
 }
 
-func (s *scraper) scrape(url string) ([]string, error) {
+func (s *scraper) scrapeAllLinks(url string) ([]string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package main
+package crawler
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type crawler struct {
+type Crawler struct {
 	visited map[string]bool
 	lock    sync.Mutex
 
@@ -19,8 +19,8 @@ type crawler struct {
 	scraper *scraper
 }
 
-func newCrawler(parallelism int) *crawler {
-	return &crawler{
+func New(parallelism int) *Crawler {
+	return &Crawler{
 		visited:  make(map[string]bool),
 		lock:     sync.Mutex{},
 		waitChan: make(chan bool, parallelism),
@@ -32,7 +32,7 @@ func newCrawler(parallelism int) *crawler {
 		},
 	}
 }
-func (c *crawler) visitedURLs() []string {
+func (c *Crawler) VisitedURLs() []string {
 	c.wg.Wait()
 	var ans []string
 	for link, valid := range c.visited {
@@ -44,26 +44,30 @@ func (c *crawler) visitedURLs() []string {
 	return ans
 }
 
-func (c *crawler) markVisited(link string) {
+func (c *Crawler) markVisited(link string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.visited[link] = true
 }
 
-func (c *crawler) markError(link string) {
+func (c *Crawler) markError(link string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.visited[link] = false
 }
 
-func (c *crawler) isVisited(link string) bool {
+func (c *Crawler) isVisited(link string) bool {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	_, ok := c.visited[link]
 	return ok
 }
 
-func (c *crawler) crawl(base, current string, depth int) {
+func (c *Crawler) Crawl(base string, maxDepth int) {
+	c.doCrawl(base, "/", maxDepth)
+}
+
+func (c *Crawler) doCrawl(base, current string, depth int) {
 	c.waitChan <- true
 	defer func() {
 		<-c.waitChan
@@ -80,7 +84,7 @@ func (c *crawler) crawl(base, current string, depth int) {
 
 	url := base + current
 	logrus.Infof("Visiting %s", url)
-	links, err := c.scraper.scrape(url)
+	links, err := c.scraper.scrapeAllLinks(url)
 	if err != nil {
 		logrus.Warnf("Error while scraping %s: %v", url, err)
 		return
@@ -93,7 +97,7 @@ func (c *crawler) crawl(base, current string, depth int) {
 			c.wg.Add(1)
 			go func() {
 				defer c.wg.Done()
-				c.crawl(base, link, depth-1)
+				c.doCrawl(base, link, depth-1)
 			}()
 		}
 	}
