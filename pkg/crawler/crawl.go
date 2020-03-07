@@ -3,6 +3,7 @@ package crawler
 import (
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/emirpasic/gods/maps/treemap"
@@ -15,6 +16,7 @@ type Crawler struct {
 
 	waitChan chan bool
 	wg       sync.WaitGroup
+	count    uint64
 
 	scraper *scraper
 }
@@ -31,6 +33,15 @@ func New(parallelism int) *Crawler {
 			},
 		},
 	}
+}
+
+func (c *Crawler) Size() int {
+	return c.visited.Size()
+}
+
+func (c *Crawler) Done() bool {
+	count := atomic.LoadUint64(&c.count)
+	return count == 0
 }
 
 func (c *Crawler) Wait() {
@@ -103,7 +114,9 @@ func (c *Crawler) doCrawl(base, current string, depth int) {
 		link := links[i]
 		if ok := c.checkVisited(link); !ok {
 			c.wg.Add(1)
+			atomic.AddUint64(&c.count, 1)
 			go func() {
+				defer atomic.AddUint64(&c.count, ^uint64(0))
 				defer c.wg.Done()
 				c.doCrawl(base, link, depth-1)
 			}()
