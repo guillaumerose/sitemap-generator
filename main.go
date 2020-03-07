@@ -7,24 +7,27 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var maxURLs int
+var (
+	maxDepth    int
+	parallelism int
+)
 
 func main() {
-	flag.IntVar(&maxURLs, "max", 20, "maximum number of URLs in sitemap")
+	flag.IntVar(&maxDepth, "max", 5, "maximum depth to crawl")
+	flag.IntVar(&parallelism, "p", 2, "maximum number of concurrent requests")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		logrus.Fatal("url is mandatory")
 	}
-	if err := run(flag.Arg(0), maxURLs); err != nil {
+	if err := run(flag.Arg(0), maxDepth, parallelism); err != nil {
 		logrus.Fatal(err)
 	}
 }
 
-func run(base string, maxURLs int) error {
-	links, err := crawl(base, maxURLs)
-	if err != nil {
-		return err
-	}
+func run(base string, maxDepth, parallelism int) error {
+	crawler := newCrawler(parallelism)
+	crawler.crawl(base, "/", maxDepth)
+	links := crawler.visitedURLs()
 	render(links, os.Stdout)
 	return nil
 }

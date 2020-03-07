@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCrawlWebsite(t *testing.T) {
@@ -28,8 +27,9 @@ func TestCrawlWebsite(t *testing.T) {
 	target := httptest.NewServer(e)
 	defer target.Close()
 
-	links, err := crawl(target.URL, 10)
-	require.NoError(t, err)
+	crawler := newCrawler(2)
+	crawler.crawl(target.URL, "/", 10)
+	links := crawler.visitedURLs()
 	assert.Equal(t, links, []string{"/", "/about", "/depth1", "/depth1/depth2"})
 }
 
@@ -45,7 +45,8 @@ func TestDiscardErrorPages(t *testing.T) {
 	target := httptest.NewServer(e)
 	defer target.Close()
 
-	links, err := crawl(target.URL, 10)
-	require.NoError(t, err)
+	crawler := newCrawler(1)
+	crawler.crawl(target.URL, "/", 10)
+	links := crawler.visitedURLs()
 	assert.Equal(t, links, []string{"/"})
 }
