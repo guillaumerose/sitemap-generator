@@ -44,7 +44,7 @@ func links(body io.ReadCloser) ([]string, error) {
 	f = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			if link := href(n); link != "" {
-				if strings.HasPrefix(link, "/") {
+				if strings.HasPrefix(link, "/") && !strings.HasPrefix(link, "//") {
 					withoutDash := strings.SplitN(link, "#", 2)[0]
 					withoutQueryParams := strings.SplitN(withoutDash, "?", 2)[0]
 					withoutExtraSlash := path.Clean(withoutQueryParams)
