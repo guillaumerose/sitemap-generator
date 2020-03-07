@@ -7,7 +7,7 @@ import (
 )
 
 func AsTree(links []string, w io.Writer) {
-	var prefix []string
+	prefix := make([]string, 0)
 	for _, link := range links {
 		split := strings.Split(link, "/")[1:]
 		depth := 0
