@@ -15,7 +15,7 @@ var (
 
 func main() {
 	flag.IntVar(&maxDepth, "max", 5, "maximum depth to crawl")
-	flag.IntVar(&parallelism, "p", 2, "maximum number of concurrent requests")
+	flag.IntVar(&parallelism, "p", 10, "maximum number of concurrent requests")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		logrus.Fatal("url is mandatory")
