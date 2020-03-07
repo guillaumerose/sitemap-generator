@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"sync"
@@ -30,6 +31,9 @@ func NewInMemoryRepository() *InMemoryRepository {
 }
 
 func (r *InMemoryRepository) Create(req *types.Crawl) (*types.Crawl, error) {
+	if req.Spec.URL == "" {
+		return nil, errors.New("spec.url is mandatory")
+	}
 	if req.Spec.MaxDepth == 0 {
 		req.Spec.MaxDepth = 3
 	}
