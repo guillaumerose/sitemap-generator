@@ -39,7 +39,7 @@ INFO[0003] Found 145 URLs
 ...
 ```
 
-HTTP client/server:
+Standalone HTTP client/server:
 
 ```
 $ ./bin/server
@@ -69,6 +69,21 @@ INFO[0000] 7 URLs found
 - /installation
 - /integrations
 - /user-guide
+```
+
+HTTP client/server with Docker:
+
+```
+$ docker run -d -p 8080:8080 -t guillaumerose/sitemap-generator-server:v1.0
+$ docker run -t guillaumerose/sitemap-generator-client:v1.0 -s http://server_ip:8080 https://kompose.io
+INFO[0000] Crawling https://kompose.io (parallelism: 2, maxDepth: 5)
+INFO[0000] 4 URLs found
+INFO[0001] Finished! 9 URLs found
+- /
+- /architecture
+- /conversion
+- /docs
+...
 ```
 
 ## Deploy
