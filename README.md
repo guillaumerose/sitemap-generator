@@ -39,7 +39,7 @@ INFO[0003] Found 145 URLs
 ...
 ```
 
-client/server:
+HTTP client/server:
 
 ```
 $ ./bin/server
@@ -91,4 +91,78 @@ deployment.apps/sitemap-generator   1/1     1            1           4m11s
 
 NAME                                           DESIRED   CURRENT   READY   AGE
 replicaset.apps/sitemap-generator-66b7488f6f   1         1         1       4m11s
+```
+
+## API
+
+### Start a crawl
+ 
+
+```
+POST /crawls
+{
+  "spec": {
+    "url": "https:/kompose.io",
+    "max_depth": 3,
+    "parallelism": 2
+  }
+}
+```
+
+```
+{
+  "id": "1",
+  "spec": {
+    "url": "https://kompose.io",
+    "max_depth": 3,
+    "parallelism": 2
+  },
+  "status": {
+    "done": false,
+    "queue_size": 0,
+    "size": 0
+  }
+}
+```
+
+### Get crawl status
+
+```
+GET /crawls/1
+```
+```
+{
+  "id": "1",
+  "spec": {
+    "url": "https://kompose.io",
+    "max_depth": 3,
+    "parallelism": 2
+  },
+  "status": {
+    "done": true,
+    "queue_size": 0,
+    "size": 9
+  }
+}
+```
+
+### Get crawl links
+
+Links are sorted.
+
+```
+GET /crawls/1/links
+```
+```
+[
+  "/",
+  "/architecture",
+  "/conversion",
+  "/docs/conversion.md",
+  "/docs/maven-example.md",
+  "/getting-started",
+  "/installation",
+  "/integrations",
+  "/user-guide"
+]
 ```
