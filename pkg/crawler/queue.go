@@ -3,43 +3,44 @@ package crawler
 import (
 	"sync"
 
-	"github.com/emirpasic/gods/lists/doublylinkedlist"
+	"github.com/emirpasic/gods/sets/linkedhashset"
 	"github.com/sirupsen/logrus"
 )
 
 type inMemoryQueue struct {
 	limit int
-	list  *doublylinkedlist.List
-	lock  *sync.RWMutex
+	list  *linkedhashset.Set
+	lock  *sync.Mutex
 }
 
 func newQueue(limit int) *inMemoryQueue {
 	return &inMemoryQueue{
 		limit: limit,
-		list:  doublylinkedlist.New(),
-		lock:  &sync.RWMutex{},
+		list:  linkedhashset.New(),
+		lock:  &sync.Mutex{},
 	}
 }
 
-func (q *inMemoryQueue) enqueue(r *Request) {
+func (q *inMemoryQueue) enqueue(r Request) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	if q.limit > 0 && q.list.Size() > q.limit {
 		logrus.Errorf("Full queue, dropping %s", r.URL)
 		return
 	}
-	q.list.Append(r)
+	q.list.Add(r)
 }
 
-func (q *inMemoryQueue) pop() *Request {
+func (q *inMemoryQueue) pop() Request {
 	q.lock.Lock()
 	defer q.lock.Unlock()
-	req, ok := q.list.Get(0)
-	if !ok {
-		return nil
+	it := q.list.Iterator()
+	if !it.Next() {
+		return Request{}
 	}
-	q.list.Remove(0)
-	return req.(*Request)
+	req := it.Value()
+	q.list.Remove(req)
+	return req.(Request)
 }
 
 func (q *inMemoryQueue) size() int {

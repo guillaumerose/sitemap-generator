@@ -74,7 +74,7 @@ func (c *Crawler) VisitedURLs() []string {
 	return ans
 }
 
-func (c *Crawler) process(threadId int, r *Request) {
+func (c *Crawler) process(threadId int, r Request) {
 	if r.Depth > c.Spec.MaxDepth {
 		return
 	}
@@ -94,7 +94,7 @@ func (c *Crawler) process(threadId int, r *Request) {
 	for i := range links {
 		link := links[i]
 		if ok := c.checkVisited(link); !ok {
-			c.queue.enqueue(&Request{
+			c.queue.enqueue(Request{
 				URL:   link,
 				Depth: r.Depth + 1,
 			})
@@ -105,7 +105,7 @@ func (c *Crawler) process(threadId int, r *Request) {
 func (c *Crawler) worker(threadId int) {
 	for c.queue.size() > 0 {
 		r := c.queue.pop()
-		if r == nil {
+		if r.URL == "" {
 			break
 		}
 		c.process(threadId, r)
@@ -114,14 +114,14 @@ func (c *Crawler) worker(threadId int) {
 }
 
 func (c *Crawler) Crawl() {
-	c.queue.enqueue(&Request{
+	c.queue.enqueue(Request{
 		URL:   "/",
 		Depth: 1,
 	})
 	// Add enough work in the queue before starting workers
 	for c.queue.size() < initialWorkPerWorker*c.Spec.Parallelism && c.queue.size() > 0 {
 		r := c.queue.pop()
-		if r == nil {
+		if r.URL == "" {
 			break
 		}
 		c.process(0, r)
