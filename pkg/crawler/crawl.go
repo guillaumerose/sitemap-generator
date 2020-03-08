@@ -3,7 +3,6 @@ package crawler
 import (
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/emirpasic/gods/maps/treemap"
@@ -11,41 +10,52 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const initialWorkPerWorker = 5
+
+type Request struct {
+	URL   string
+	Depth int
+}
+
 type Crawler struct {
 	Spec types.CrawlSpec
 
+	queue *inMemoryQueue
+
+	wg sync.WaitGroup
+
 	visited *treemap.Map
 	lock    sync.RWMutex
-
-	waitChan chan bool
-	wg       sync.WaitGroup
-	count    uint64
 
 	scraper *scraper
 }
 
 func New(spec types.CrawlSpec) *Crawler {
 	return &Crawler{
-		Spec:     spec,
-		visited:  treemap.NewWithStringComparator(),
-		lock:     sync.RWMutex{},
-		waitChan: make(chan bool, spec.Parallelism),
-		wg:       sync.WaitGroup{},
+		queue:   newQueue(1_000_000),
+		Spec:    spec,
+		visited: treemap.NewWithStringComparator(),
+		lock:    sync.RWMutex{},
 		scraper: &scraper{
 			client: &http.Client{
 				Timeout: 5 * time.Second,
 			},
 		},
+		wg: sync.WaitGroup{},
 	}
 }
 
 func (c *Crawler) Size() int {
+	return c.queue.size()
+}
+
+func (c *Crawler) VisitedSize() int {
 	return c.visited.Size()
 }
 
 func (c *Crawler) Done() bool {
-	count := atomic.LoadUint64(&c.count)
-	return count == 0
+	s := c.queue.size()
+	return s == 0
 }
 
 func (c *Crawler) Wait() {
@@ -62,6 +72,68 @@ func (c *Crawler) VisitedURLs() []string {
 		}
 	})
 	return ans
+}
+
+func (c *Crawler) process(threadId int, r *Request) {
+	if r.Depth > c.Spec.MaxDepth {
+		return
+	}
+
+	if ok := c.checkVisitedAndMark(r.URL); ok {
+		return
+	}
+
+	logrus.Infof("#%d Visiting %s", threadId, r.URL)
+	links, err := c.scraper.scrapeAllLinks(c.Spec.URL + r.URL)
+	if err != nil {
+		logrus.Warnf("Error while scraping %s: %v", r.URL, err)
+		return
+	}
+	c.markVisited(r.URL)
+
+	for i := range links {
+		link := links[i]
+		if ok := c.checkVisited(link); !ok {
+			c.queue.enqueue(&Request{
+				URL:   link,
+				Depth: r.Depth + 1,
+			})
+		}
+	}
+}
+
+func (c *Crawler) worker(threadId int) {
+	for c.queue.size() > 0 {
+		r := c.queue.pop()
+		if r == nil {
+			break
+		}
+		c.process(threadId, r)
+	}
+	logrus.Debugf("#%d is dead", threadId)
+}
+
+func (c *Crawler) Crawl() {
+	c.queue.enqueue(&Request{
+		URL:   "/",
+		Depth: 1,
+	})
+	// Add enough work in the queue before starting workers
+	for c.queue.size() < initialWorkPerWorker*c.Spec.Parallelism && c.queue.size() > 0 {
+		r := c.queue.pop()
+		if r == nil {
+			break
+		}
+		c.process(0, r)
+	}
+	// Starting workers
+	for i := 0; i < c.Spec.Parallelism; i++ {
+		c.wg.Add(1)
+		go func(threadId int) {
+			defer c.wg.Done()
+			c.worker(threadId)
+		}(i + 1)
+	}
 }
 
 func (c *Crawler) markVisited(link string) {
@@ -85,45 +157,4 @@ func (c *Crawler) checkVisitedAndMark(link string) bool {
 		c.visited.Put(link, false)
 	}
 	return ok
-}
-
-func (c *Crawler) Crawl() {
-	c.doCrawl(c.Spec.URL, "/", c.Spec.MaxDepth)
-}
-
-func (c *Crawler) doCrawl(base, current string, depth int) {
-	c.waitChan <- true
-	defer func() {
-		<-c.waitChan
-	}()
-
-	if depth <= 0 {
-		return
-	}
-
-	if ok := c.checkVisitedAndMark(current); ok {
-		return
-	}
-
-	url := base + current
-	logrus.Infof("Visiting %s", url)
-	links, err := c.scraper.scrapeAllLinks(url)
-	if err != nil {
-		logrus.Warnf("Error while scraping %s: %v", url, err)
-		return
-	}
-	c.markVisited(current)
-
-	for i := range links {
-		link := links[i]
-		if ok := c.checkVisited(link); !ok {
-			c.wg.Add(1)
-			atomic.AddUint64(&c.count, 1)
-			go func() {
-				defer atomic.AddUint64(&c.count, ^uint64(0))
-				defer c.wg.Done()
-				c.doCrawl(base, link, depth-1)
-			}()
-		}
-	}
 }

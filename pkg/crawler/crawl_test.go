@@ -54,7 +54,7 @@ func TestDiscardErrorPages(t *testing.T) {
 	crawler := New(types.CrawlSpec{
 		URL:         target.URL,
 		MaxDepth:    10,
-		Parallelism: 1,
+		Parallelism: 2,
 	})
 	crawler.Crawl()
 	crawler.Wait()

@@ -13,6 +13,7 @@ type CrawlSpec struct {
 }
 
 type CrawlStatus struct {
-	Done bool `json:"done"`
-	Size int  `json:"size"`
+	Done      bool `json:"done"`
+	QueueSize int  `json:"queue_size"`
+	Size      int  `json:"size"`
 }

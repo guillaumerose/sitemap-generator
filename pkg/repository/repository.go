@@ -65,8 +65,9 @@ func (r *InMemoryRepository) Get(id string) (*types.Crawl, error) {
 			ID:   id,
 			Spec: crawl.Spec,
 			Status: types.CrawlStatus{
-				Done: crawl.Done(),
-				Size: crawl.Size(),
+				Done:      crawl.Done(),
+				QueueSize: crawl.Size(),
+				Size:      crawl.VisitedSize(),
 			},
 		}, nil
 	}

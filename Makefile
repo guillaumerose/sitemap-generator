@@ -1,8 +1,11 @@
+.PHONY: all
 all: lint test build
 
+.PHONY: clean
 clean:
 	rm -rf bin/
 
+.PHONY: bin
 bin:
 	mkdir -p bin/
 
@@ -33,6 +36,7 @@ test:
 run: build
 	bin/sitemap-generator https://www.redhat.com
 
+.PHONY: images
 images:
 	docker build -t guillaumerose/sitemap-generator-server:v1.0 -f cmd/server/Dockerfile .
 	docker build -t guillaumerose/sitemap-generator-client:v1.0 -f cmd/client/Dockerfile .
