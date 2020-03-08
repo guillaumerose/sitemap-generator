@@ -15,11 +15,27 @@ This will output the `sitemap-generator` binary in `bin/`
 Standalone crawler:
 
 ```
-$ ./bin/sitemap-generator https://www.redhat.com
-/en
-/en/search
-/en/technologies
-/en/solutions
+$ ./bin/sitemap-generator -h
+Usage of ./bin/sitemap-generator:
+  -d int
+    	maximum depth to crawl (default 5)
+  -p int
+    	maximum number of concurrent requests (default 2)
+
+$ ./bin/sitemap-generator -d 2 -p 2 https://www.redhat.com
+INFO[0000] #0 Visiting /
+INFO[0000] #2 Visiting /en
+INFO[0000] #1 Visiting /en/search
+...
+INFO[0003] Found 145 URLs
+- /
+- /en
+  - /about
+    - /all-policies-guidelines
+    - /around-the-world
+    - /company
+    - /development-model
+    - /feedback
 ...
 ```
 
@@ -31,6 +47,15 @@ INFO[0000] Listening on :8080
 ```
 
 ```
+$ ./bin/client -h
+Usage of ./bin/client:
+  -d int
+    	maximum depth to crawl (default 5)
+  -p int
+    	maximum number of concurrent requests (default 2)
+  -s string
+    	crawler URL (default "http://127.0.0.1:8080")
+
 $ ./bin/client https://kompose.io
 INFO[0000] Crawling https://kompose.io (parallelism: 10, maxDepth: 5)
 INFO[0000] 7 URLs found
