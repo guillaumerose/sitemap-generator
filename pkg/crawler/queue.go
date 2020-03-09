@@ -44,5 +44,7 @@ func (q *inMemoryQueue) pop() Request {
 }
 
 func (q *inMemoryQueue) size() int {
+	q.lock.Lock()
+	defer q.lock.Unlock()
 	return q.list.Size()
 }

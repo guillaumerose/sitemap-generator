@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -92,6 +93,33 @@ func TestNoDepthLimit(t *testing.T) {
 	crawler.Wait()
 	links := crawler.VisitedURLs()
 	assert.Equal(t, links, []string{"/", "/10", "/2", "/3", "/4", "/5", "/6", "/7", "/8", "/9"})
+}
+
+func TestLargeWebsite(t *testing.T) {
+	e := echo.New()
+	e.GET("/", func(c echo.Context) error {
+		return c.HTML(http.StatusOK, `<a href="/1">1</a>`)
+	})
+	e.GET("/:index", func(c echo.Context) error {
+		output := ""
+		for i := 0; i < 10; i++ {
+			next := rand.Intn(1000)
+			output += fmt.Sprintf(`<a href="/%d">%d</a>`, next, next)
+		}
+		return c.HTML(http.StatusOK, output)
+	})
+	target := httptest.NewServer(e)
+	defer target.Close()
+
+	crawler := New(types.CrawlSpec{
+		URL:         target.URL,
+		MaxDepth:    -1,
+		Parallelism: 10,
+	})
+	crawler.Crawl()
+	crawler.Wait()
+	links := crawler.VisitedURLs()
+	assert.Len(t, links, 1000+1)
 }
 
 func deepWebsite() *echo.Echo {
