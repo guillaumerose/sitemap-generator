@@ -38,5 +38,5 @@ run: build
 
 .PHONY: images
 images:
-	docker build -t guillaumerose/sitemap-generator-server:v1.0 -f cmd/server/Dockerfile .
-	docker build -t guillaumerose/sitemap-generator-client:v1.0 -f cmd/client/Dockerfile .
+	docker build -t guillaumerose/sitemap-generator-server:v1.1 -f cmd/server/Dockerfile .
+	docker build -t guillaumerose/sitemap-generator-client:v1.1 -f cmd/client/Dockerfile .

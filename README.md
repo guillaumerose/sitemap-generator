@@ -74,8 +74,8 @@ INFO[0000] 7 URLs found
 HTTP client/server with Docker:
 
 ```
-$ docker run -d -p 8080:8080 -t guillaumerose/sitemap-generator-server:v1.0
-$ docker run -t guillaumerose/sitemap-generator-client:v1.0 -s http://server_ip:8080 https://kompose.io
+$ docker run -d -p 8080:8080 -t guillaumerose/sitemap-generator-server:v1.1
+$ docker run -t guillaumerose/sitemap-generator-client:v1.1 -s http://server_ip:8080 https://kompose.io
 INFO[0000] Crawling https://kompose.io (parallelism: 2, maxDepth: 5)
 INFO[0000] 4 URLs found
 INFO[0001] Finished! 9 URLs found
