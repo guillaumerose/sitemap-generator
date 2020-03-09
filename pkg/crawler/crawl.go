@@ -25,7 +25,7 @@ type Crawler struct {
 	wg sync.WaitGroup
 
 	visited *treemap.Map
-	lock    sync.RWMutex
+	lock    sync.Mutex
 
 	scraper *scraper
 }
@@ -35,7 +35,7 @@ func New(spec types.CrawlSpec) *Crawler {
 		queue:   newQueue(1_000_000),
 		Spec:    spec,
 		visited: treemap.NewWithStringComparator(),
-		lock:    sync.RWMutex{},
+		lock:    sync.Mutex{},
 		scraper: &scraper{
 			client: &http.Client{
 				Timeout: 5 * time.Second,
@@ -50,6 +50,8 @@ func (c *Crawler) Size() int {
 }
 
 func (c *Crawler) VisitedSize() int {
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	return c.visited.Size()
 }
 
@@ -63,8 +65,8 @@ func (c *Crawler) Wait() {
 }
 
 func (c *Crawler) VisitedURLs() []string {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	var ans []string
 	c.visited.Each(func(link interface{}, valid interface{}) {
 		if valid.(bool) {
@@ -143,8 +145,8 @@ func (c *Crawler) markVisited(link string) {
 }
 
 func (c *Crawler) checkVisited(link string) bool {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	_, ok := c.visited.Get(link)
 	return ok
 }
