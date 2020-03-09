@@ -19,7 +19,7 @@ var (
 
 func main() {
 	flag.StringVar(&crawlerURL, "s", "http://127.0.0.1:8080", "crawler URL")
-	flag.IntVar(&maxDepth, "d", 5, "maximum depth to crawl")
+	flag.IntVar(&maxDepth, "d", 5, "maximum depth to crawl (-1 is unlimited depth)")
 	flag.IntVar(&parallelism, "p", 2, "maximum number of concurrent requests")
 	flag.Parse()
 	if flag.NArg() != 1 {

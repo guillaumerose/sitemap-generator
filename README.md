@@ -18,7 +18,7 @@ Standalone crawler:
 $ ./bin/sitemap-generator -h
 Usage of ./bin/sitemap-generator:
   -d int
-    	maximum depth to crawl (default 5)
+    	maximum depth to crawl (-1 is unlimited depth) (default 5)
   -p int
     	maximum number of concurrent requests (default 2)
 
@@ -50,7 +50,7 @@ INFO[0000] Listening on :8080
 $ ./bin/client -h
 Usage of ./bin/client:
   -d int
-    	maximum depth to crawl (default 5)
+    	maximum depth to crawl (-1 is unlimited depth) (default 5)
   -p int
     	maximum number of concurrent requests (default 2)
   -s string

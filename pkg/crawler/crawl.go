@@ -75,7 +75,7 @@ func (c *Crawler) VisitedURLs() []string {
 }
 
 func (c *Crawler) process(threadId int, r Request) {
-	if r.Depth > c.Spec.MaxDepth {
+	if c.Spec.MaxDepth >= 0 && r.Depth > c.Spec.MaxDepth {
 		return
 	}
 

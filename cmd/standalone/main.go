@@ -16,7 +16,7 @@ var (
 )
 
 func main() {
-	flag.IntVar(&maxDepth, "d", 5, "maximum depth to crawl")
+	flag.IntVar(&maxDepth, "d", 5, "maximum depth to crawl (-1 is unlimited depth)")
 	flag.IntVar(&parallelism, "p", 2, "maximum number of concurrent requests")
 	flag.Parse()
 	if flag.NArg() != 1 {
