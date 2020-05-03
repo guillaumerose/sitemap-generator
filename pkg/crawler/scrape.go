@@ -23,6 +23,7 @@ func (s *scraper) scrapeAllLinks(url string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return nil, fmt.Errorf("unexpected status code, got %d", res.StatusCode)
 	}
@@ -30,7 +31,6 @@ func (s *scraper) scrapeAllLinks(url string) ([]string, error) {
 		return []string{}, nil
 	}
 
-	defer res.Body.Close()
 	return links(res.Body)
 }
 
